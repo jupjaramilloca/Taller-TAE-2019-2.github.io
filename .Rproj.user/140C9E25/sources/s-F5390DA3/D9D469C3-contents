@@ -1,0 +1,815 @@
+---
+title: "Desarrollo practico ejercicios TAE  "
+author: Est. Estefania Alvarez Piedrahita </center> Est. Juan Pablo Jaramillo Castrillon </br> Universidad Nacional de Colombia - Sede Medellin </br> Escuela De Estadistica.
+date: "21 de marzo de 2020"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+#Ejercicios {.tabset .tabset-fade .tabset-pills}
+
+## Capitulo IV {.tabset .tabset-fade .tabset-pills}
+
+
+###Punto 10
+
+*  **Estas pregunta deben respoderse utilizando el conjunto de datos _Weekly_, que es parte del paquete _ISLR_. Estos datos son similares en naturaleza a datos de _Smarket_ de este capítulo, excepto que contiene 1,089 Regresos semanales durante 21 años, desde principios de 1990 hasta el final del 2010.**
+
+
+
+
+**(a) Produzaca algunos resumenes numéricos y gráficos de los datos _Weekly_.¿ parace que hay patrones?.**
+
+>Resumen de variables:
+
+```{r}
+library(ISLR)
+data("Weekly")
+summary(Weekly)
+
+
+```
+
+
+>Matriz de gráfico de dispersión:
+
+```{r}
+pairs(Weekly)
+```
+
+En la primera matriz muestra un resumen de las variables a trabajar, observamos que todas estan a una misma escala, ecepto la varible dirección que cuenta con dos niveles (Alto y bajo). En la segunda matriz las varibles lag1,lag2,lag3,lag4,lag5 y volumen, son variables que entre ellas aparentemente las observaciones se concentrar en el centro; podemos notar que las varible año y variable volume tiene un comportamiento de un polinomio de grado dos acsendente mientras pasa el tiempo.
+
+
+
+>Matriz de correlaciones
+
+```{r}
+cor(Weekly[,-9])
+
+```
+
+**(b) Utilice el conjunto de datos completo para realizar una regresion logística con _Direction_ como la respuesta y la cinco varibles de retraso mas _Volume_ como predictoras. Use la funcion summary para imprimir los resultados. ¿algunos de los predictores parece ser estadisticamente significativos? si es asi ¿cuales son estas variables? **
+
+> Resumen Regresión logística
+
+
+```{r}
+
+mod1 <- glm( Direction ~ Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data = Weekly,family = "binomial")
+summary(mod1)
+
+
+```
+
+Podemos observar que la variable Lag2 con un **P-valor** de 0.0296 es estadisiticamente significativa con un nivel de confianza de 0.05.
+
+
+**(c) Compute la matrix de confusión y la fracción general de las predicciones correctas. Explica qué te dice la matriz de confusión logística.**
+
+>Tabla de confusión
+
+```{r}
+prediction <- mod1$fitted.values
+pred<- rep("Dow",length(prediction))
+pred[prediction > 0.5]<- "Up"
+table(pred,Weekly$Direction)
+
+```
+
+
+Con esta tabla de confusión y los datos de pruba, podemos concluir que el porcentaje de acierto en la prediccion es de $\frac{54+557}{1089} = 0.5610 \times 100$ = 56.10% del tiempo . La tasa de error con los datos de entrenamiento es del 100%-56.10% = 43.8%. Tambien apreciamos que cuando el mercado sube, El modelo acierta $\frac{557}{48+557}=0.92\times100%$=92% de la veces, tambien cuando el mercado baja el modelo acierta un $\frac{54}{54+430}=0.1115\times 100$ = 11.15%  del tiempo.
+
+
+
+
+
+
+
+
+**(d) Ahora ajuste el modelo de regresión logística utilizando un período de datos de entrenamiento de 1990 a 2008, con Lag2 como el unico predictor. Calcule la matriz de confusión y la fracción general de las predicciones correctas para los datos retenidos (Es decir, los datos de 2009 y 2010)**
+
+>Resumen Modelo con lag2.
+
+```{r}
+
+train <- subset.data.frame(x = Weekly,subset = Year < 2009)
+test2009_2010 <- subset.data.frame(Weekly,subset = Year >=2009)
+mod2 <- glm(Direction ~ Lag2 ,data = train,family = binomial)
+summary(mod2)
+```
+
+>Tabla de confusión
+
+```{r}
+prediction2 <- predict(object = mod2,newdata = test2009_2010,type = "response")
+pred2<- rep("Dow",length(prediction2))
+pred2[prediction2 > 0.5]<- "Up"
+table(pred2,test2009_2010$Direction)
+
+```
+
+Con esta tabla de confusión y los datos de pruba, podemos concluir que el porcentaje de acierto en la prediccion es de $\frac{9+56}{104}=0.625\times 100$= 62.5%  del tiempo. La tasa de error con los datos de prueba es del 100%-62.5% = 37.5%. Tambien apreciamos que cuando el mercado sube, El modelo acierta $\frac{56}{5+56}=0.9180\times100%$=91.8% del tiempo, tambien cuando el mercado baja el modelo acierta un  $\frac{34}{34+9}=0.79\times 100$ = 79.6% del tiempo.
+
+
+
+
+**(e) Repita (d) usando LDA**
+
+>Resumen modelo LDA:
+
+```{r}
+library(MASS)
+modlda <- lda(Direction~Lag2,data = train)
+modlda
+```
+
+>Tabla de confusión:
+
+```{r}
+prediction_LDA <- predict(object = modlda,newdata = test2009_2010)
+table(prediction_LDA$class,test2009_2010$Direction)
+```
+
+
+Con esta tabla de confusión y los datos de pruba, podemos concluir que el porcentaje de acierto en la prediccion es de $\frac{9+56}{104}=0.625\times 100$= 62.5%  del tiempo. La tasa de error con los datos de prueba es del 100%-62.5% = 37.5%. Tambien apreciamos que cuando el mercado sube, El modelo acierta $\frac{56}{5+56}=0.9180\times100%$=91.8% de la veces, tambien cuando el mercado baja el modelo acierta un  $\frac{34}{34+9}=0.79\times 100$ = 79.6% del tiempo.
+
+
+
+
+**(f) Repita (d) usando QDA**
+
+>Resumen modelo QDA
+
+```{r}
+mod_QDA <-  qda(Direction~Lag2,data = train)
+mod_QDA
+```
+
+
+```{r}
+prediction_QDA <- predict(mod_QDA,newdata = test2009_2010)
+table(prediction_QDA$class,test2009_2010$Direction)
+```
+
+
+Con esta tabla de confusión y los datos de pruba, podemos concluir que el porcentaje de acierto en la prediccion es de $\frac{0+61}{104}=0.5865 \times 100$= 58.65%  del tiempo. La tasa de error con los datos de prueba es del 100%-58.65% = 41.35%. Tambien apreciamos que cuando el mercado sube, El modelo acierta $\frac{61}{61}=1$ osea el 100% de la veces, Se resalta este modelo de anialisis de discriminación cudratica elige una dirección alta todo el tiempo.
+
+**(g) Repita (d) usando Knn con k=1.**
+
+>Table de confusión:
+
+```{r}
+library(class)
+train.x <- as.matrix(train$Lag2)
+test.x <- as.matrix(test2009_2010$Lag2)
+train.Direction <- train$Direction
+set.seed(1)
+prediction_knn <- knn(train = train.x,test = test.x,cl = train.Direction,k = 1)
+table(prediction_knn,test2009_2010$Direction)
+```
+
+Con esta tabla de confusión y los datos de pruba, podemos concluir que el porcentaje de acierto en la prediccion es de 62.5%  del tiempo. La tasa de error con los datos de prueba es del 100%-56.10% = 43.9%. Tambien apreciamos que cuando el mercado sube, El modelo acierta 50.81% de la veces, tambien cuando el mercado baja el modelo acierta un  48.83% del tiempo.
+
+
+**(h) ¿ cuál de estos métodos parece proporcionar los mejores resultados con estos datos ?**
+
+Con los modelos anteriores, vemos que el _modelo de regresión logístico_ y _LDA_, La tasa de error es mínima. tambien para los modelos _QDA_ y _KNN_ un poco menores.
+
+
+
+**(i) Experimente con diferentes combinaciones de predictores, incluyendo posibles transformaciones, para cada uno de los métodos, reporte la variables,método y la matriz de confusión asociada que parece proporcionar los mejores resultados en los mejores resultados en los datos retenidos.Tenga encuenta también debe experimentar con los valores para _K_ en la clasificación con KNN. **
+
+La variable mas significativa es Lag2 como se mostro en los anteriores puntos para tener una interacción con las segunda varible significativa.
+
+
+
+
+```{r}
+library(MASS)
+library(class)
+
+mod_inter_1 <- glm(Direction~Lag2:Lag1,family = binomial,data = train)
+prediction_inter_1 <- predict(mod_inter_1,test2009_2010,type = "response")
+pred_inter_1 <- rep("Dow",length(prediction_inter_1))
+pred_inter_1[prediction_inter_1 > 0.5] <- "Up"
+
+
+mod_lda_inter <-lda(Direction~Lag2:Lag1,data = train)
+
+prediction_LDA_inter <- predict(mod_lda_inter,test2009_2010)
+
+
+mod_QDA_inter <- qda(Direction ~ Lag2+sqrt(abs(Lag2)),train)
+pred_QDA_inter <- predict(mod_QDA_inter,test2009_2010)
+
+set.seed(0511)
+#knn k=10
+prediction_knn1 <- knn(train = train.x,test = test.x,cl = train.Direction,k = 10)
+#knn=100
+prediction_knn2 <- knn(train = train.x,test = test.x,cl = train.Direction,k = 100)
+
+```
+
+>**Tablas de modelos realizados con interacciones**
+
+|Modelo|predicción correcta|tasa de presición cuando el mercado aumenta|
+|------|-------------------|----------------------------------------|
+|regresión logistica con interacción|57.69%|98.36%|
+|LDA con interacción| 57.69%|98.36%%|
+|QDA con $\sqrt(abs(Lag2))$| 57.69%|78.68%|
+|knn con K=10 | 57.69% | 68.85%|
+|Knn con k=100| 56.73% | 80.32%|
+
+De esta tabla se puede concluir que el modelo de regresión logística y LDA tienen el mejor rendimiento en tasas de error de prueba.
+
+
+### Punto 11
+
+*  **En este problema, desarrollará un modelo para predecir si un automóvil determinado obtiene un consumo de combustible alto o bajo en función del conjunto de datos automático.**
+
+**(a) Cree una variable binaria, mpg01, que contenga un 1 si mpg contiene un valor por encima de su mediana, y un 0 si mpg contiene un valor por debajo de su mediana. Puede calcular la mediana utilizando la función median(). Tenga en cuenta que puede resultarle útil utilizar la función data.frame() para crear un único conjunto de datos que contenga tanto mpg01 como las otras variables automáticas.**
+
+```{r}
+library(ISLR)
+data(Auto)
+n <- length(Auto$mpg)
+
+mpg01 <- ifelse( Auto$mpg > median(Auto$mpg),1,0)
+Auto <- data.frame(Auto,mpg01)
+Auto$mpg01 <- as.factor(Auto$mpg01)
+
+```
+
+
+```{r,results="asis"}
+knitr::kable(head(Auto),caption = "Cabeza de base de datos Auto con variable mpg01")
+```
+
+
+**(b) Explore los datos gráficamente para investigar la asociación entre mpg01 y las otras características. ¿Cuál de las otras características parece más útil para predecir mpg01? Los diagramas de dispersión y los diagramas de caja pueden ser herramientas útiles para responder a esta pregunta. Describe tus hallazgos.**
+
+>Correlaciones entre variables:
+
+```{r}
+Auto1 <- Auto
+Auto1$mpg01 <- as.numeric(Auto1$mpg01)
+cor(Auto1[,-9])
+```
+
+> Grafico de dispersion
+
+```{r}
+pairs(Auto)
+```
+
+```{r}
+attach(Auto)
+layout(rbind(c(1,1,1,2,2,2,3,3,3),c(4,4,4,5,5,5,6,6,6)))
+boxplot(cylinders~mpg01,data = Auto,main="Cilindros vs mpg01")
+boxplot(displacement ~mpg01,data = Auto,main="Desplazamiento vs mpg01")
+boxplot(horsepower ~mpg01,data = Auto,main="Caballos de fuerza vs mpg01")
+boxplot(weight ~mpg01,data = Auto,main="Peso del vehiculo vs mpg01")
+boxplot(acceleration ~mpg01,data = Auto,main="Aceleración vs mpg01")
+boxplot(year ~mpg01,data = Auto,main="Modelo vs mpg01")
+
+
+
+```
+
+
+
+**(c) Divida los datos en un conjunto de entrenamiento y un conjunto de prueba.**
+
+
+
+```{r}
+train <- sample(seq(length(Auto$mpg01)),length(Auto$mpg01)*0.70,replace = FALSE)
+data_train <- Auto[train,]
+data_test <- Auto[-train,]
+
+```
+
+|Entranamiento|Prueba |Total|
+|-------------|-------|-----|
+| 274         | 118   | 392 |
+|-------------|-------|-----|
+
+
+**(d)  Realice LDA en los datos de entrenamiento para predecir mpg01 usando las variables que parecían más asociadas con mpg01 en (b). ¿Cuál es el error de prueba del modelo obtenido?**
+
+```{r}
+require(MASS)
+fit.lda <- lda(mpg01 ~ cylinders+displacement+horsepower+weight,Auto)
+fit.lda
+```
+
+```{r}
+pred.lda <- predict(fit.lda,data_test)
+table(pred.lda$class,data_test$mpg01)
+```
+
+```{r}
+mean(pred.lda$class != data_test$mpg01)
+```
+Con los resultados anteriores podemos concluir que la tasa de error es del 11.01%.
+
+
+**(e) Realice QDA en los datos de entrenamiento para predecir mpg01 usando las variables que parecían más asociadas con mpg01 en (b). ¿Cuál es el error de prueba del modelo obtenido?**
+
+
+
+```{r}
+fit.qda <- qda(mpg01~cylinders+displacement+horsepower,data = data_train)
+fit.qda
+```
+
+```{r}
+pred.qda <- predict(fit.qda,data_test)
+table(pred.qda$class,data_test$mpg01)
+
+```
+
+```{r}
+mean(pred.qda$class != data_test$mpg01)
+```
+Con los resultados anteriores podemos concluir que la tasa de error es del 11.01%.
+
+
+
+**(f) Realice una regresión logística en los datos de entrenamiento para predecir mpg01 usando las variables que parecían más asociadas con mpg01 en (b). ¿Cuál es el error de prueba del modelo obtenido?**
+
+
+```{r}
+fit.glm <- glm(mpg01 ~ cylinders+displacement+horsepower+weight+acceleration,family = binomial,data_train)
+summary(fit.glm)
+```
+```{r}
+pr<- predict(fit.glm,data_test,type = "response")
+pred.glm <- rep(0,length(pr))
+pred.glm[pr>0.5]<-1
+table(pred.glm,data_test$mpg01)
+```
+```{r}
+mean(pred.glm != data_test$mpg01)
+```
+Con los resultados anteriores podemos concluir que la tasa de error es del 11.86%.
+
+
+
+**(g) Realice KNN en los datos de entrenamiento, con varios valores de K, para predecir mpg01. Use solo las variables que parecían más asociadas con mpg01 en (b). ¿Qué errores de prueba obtienes? ¿Qué valor de K parece tener el mejor rendimiento en este conjunto de datos?**
+
+```{r}
+require(ggplot2)
+require(factoextra)
+require(class)
+require(caret)
+set.seed(0511)
+ctrl <- trainControl(method="repeatedcv",repeats = 3) 
+knnFit <- train(mpg01 ~ cylinders+displacement+horsepower+weight+acceleration, data =data_train[,-c(1,7,8,9)], method = "knn", trControl = ctrl, preProcess = c("center","scale"), tuneLength = 20)
+knnFit
+```
+se obtuvo  un k optimo de 7 procedemos con el modelo.
+
+```{r}
+train.x <- as.matrix(data_train[,-c(1,7,8,9)])
+test.x <- as.matrix(data_test[,-c(1,7,8,9)])
+train.y <- as.matrix(data_train$mpg01)
+test.y <- as.matrix(data_test$mpg01)
+set.seed(0511)
+pred.knn <- knn(train = train.x,test = test.x,cl = train.y,k = 7)
+table(pred.knn,test.y)
+
+```
+```{r}
+mean(pred.knn !=test.y)
+```
+con los resultados obtenidos con un K=7 optimo la tasa de error es de 13.55%.
+
+
+**Conclución general**: Los mejores modelos son LDA y QDA con una tasa de error de 11.01%
+
+
+
+### Punto 12
+
+*  **Este problema implica escribir funciones.**
+
+**(a) Escriba una función, Power(), que imprima el resultado de elevar 2 a la tercera potencia. En otras palabras, su función debe calcular $2^3$ e imprimir los resultados.Sugerencia: recuerde que $x^a$ eleva x a la potencia a. Use la función print() para generar el resultado.**
+
+```{r}
+Power <- function() {
+    2^3
+}
+
+Power()
+```
+
+
+**(b) Cree una nueva función, Power2(), que le permita pasar dos números, x y a, e imprima el valor de $x^a$. Puede hacer esto comenzando su función con la línea**
+
+
+```{r}
+power <- function(){2^3}
+power()
+```
+
+
+**(b) Cree una nueva función, Power2(), que le permita pasar dos números, x y a, e imprima 
+el valor de $x^a$. Puede hacer esto comenzando su función con la línea**
+
+
+```{r}
+Power2 <- function (x,a){x^a}
+
+Power2(3,8)
+```
+
+
+
+```{r}
+Power2 <- function(x, a) {
+    x^a
+}
+
+Power2(3, 8)
+```
+
+
+**(c) Usando la función Power2() que acaba de escribir, calcule $10^3$, $8^17$ y $131^3$.**
+
+
+```{r}
+Power2(10,3)
+```
+```{r}
+Power2(8,17)
+```
+```{r}
+Power2(131,3)
+```
+
+
+
+
+
+
+**(d) Ahora cree una nueva función, Power3(), que realmente devuelve el resultado x^a como un objeto R, en lugar de simplemente imprimirlo en la pantalla. Es decir, si almacena el valor x^a en un objeto llamado resultado dentro de su función, simplemente puede return() este resultado, utilizando la siguiente línea:**
+
+
+```{r}
+power3 <- function(x,a){
+  resultado <- x^a
+  return(resultado)
+}
+```
+
+
+
+```{r}
+Power3 <- function(x , a) {
+    result <- x^a
+    return(result)
+}
+```
+
+
+**(e) Ahora, utilizando la función Power3 (), cree un plot de f(x) = $x^2$. El eje x debe mostrar un rango de enteros del 1 al 10, y el eje y debería mostrar $x^2$. Rotule los ejes apropiadamente y use un título apropiado para la figura. Considere mostrar el eje x, el eje y o ambos en la escala logarítmica. Puede hacerlo utilizando log = ‘‘ x ’’, log = ‘‘ y ’’ o log = ‘‘ xy ’’ como argumentos de la función plot()**
+
+>función a graficar:
+
+$$f(x)=x^2$$
+
+```{r}
+x <- 1:10
+plot(x,power3(x,2),log = "xy",xlab = "log de x",ylab = "log de x^2",main = "log de x^2 vs log de x")
+```
+
+
+```{r}
+x <- 1:10
+plot(x, Power3(x, 2), log = "xy", xlab = "Log of x", ylab = "Log of x^2", main = "Log of x^2 vs Log of x")
+```
+
+
+**(f) Cree una función, PlotPower (), que le permite crear una gráfica de x contra x ^ a para un a fijo y para un rango de valores de x. Por ejemplo, si llamas**
+
+
+
+**entonces se debe crear un gráfico con un eje x que tome valores 1,2, ..., 10 y un eje y que toma los valores $1^3$,$2^3$, ..., $10^3$.**
+
+
+```{r}
+plotpower <- function(x,a){
+  plot(x,power3(x,a))
+}
+plotpower(1:10,3)
+```
+
+
+```{r}
+PlotPower <- function(x, a) {
+    plot(x, Power3(x, a))
+}
+
+PlotPower(1:10, 3)
+```
+
+
+### Punto 13
+
+**Utilizando el conjunto de datos de Boston, ajuste los modelos de clasificación para predecir si un suburbio determinado tiene una tasa de criminalidad superior o inferior a la mediana. Explore los modelos de regresión logística, LDA y KNN utilizando varios subconjuntos de predictores. Describe tus hallazgos.**
+
+```{r}
+library(MASS)
+data("Boston")
+medianacrim <- median(Boston$crim)
+crim01 <- rep(0,length(Boston$crim))
+crim01[Boston[1]>medianacrim] <- 1
+Boston$crim01 <- crim01
+train <- sample(seq(length(Boston$crim01)),length(Boston$crim01)*0.70,replace = FALSE)
+data_train <- Boston[train,]
+data_test <- Boston[-train,]
+
+```
+
+
+>Regresion logistica:
+
+```{r}
+
+fit.glm <- glm(crim01~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat,family = binomial,data_train)
+summary(fit.glm)
+```
+```{r}
+prob.glm <- predict(fit.glm,data_test,type = "response")
+pred.glm <- rep(0,length(prob.glm))
+pred.glm[prob.glm > 0.5] <- 1
+table(pred.glm,data_test$crim01)
+```
+
+```{r}
+mean(pred.glm != data_test$crim01)
+```
+
+con los resultados obtenidos la tasa de error es de 13.15% 
+
+Con variables predictora con correlacion fuerte
+```{r}
+fit.glm1 <- glm(crim01~indus+nox+age+dis+rad+tax+black+lstat,family = binomial,data_train)
+summary(fit.glm1)
+```
+```{r}
+prob.glm1 <- predict(fit.glm1,data_test,type = "response")
+pred.glm1 <- rep(0,length(prob.glm1))
+pred.glm1[prob.glm1 > 0.5] <- 1
+table(pred.glm1,data_test$crim01)
+
+```
+
+```{r}
+mean(pred.glm1 != data_test$crim01)
+```
+con estos variables predictoras la tasa de error es de 15.13%.
+
+
+>LDA:
+
+```{r}
+fit.lda <- lda(crim01~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat , data = data_train)
+fit.lda
+```
+
+```{r}
+pred.lda <- predict(fit.lda,data_test)
+table(pred.lda$class,data_test$crim01)
+
+```
+
+```{r}
+mean(pred.lda$class != data_test$crim01)
+```
+Con los resultados obtenidos con este metodo, la tasa de error es de 17.10% mas que la regresión logistíca.
+
+Ahora con las variables predictoras con correlación fuerte.
+```{r}
+fit.lda1 <- lda(crim01~indus+nox+age+dis+rad+tax+black+lstat , data = data_train)
+fit.lda1
+
+```
+
+```{r}
+pred.lda <- predict(fit.lda,data_test)
+table(pred.lda$class,data_test$crim01)
+
+```
+
+```{r}
+mean(pred.lda$class != data_test$crim01)
+```
+Con estas covariables se obtiene una tasa de error de 17.10% igual que la anterior pero por pricipio de parcimonia es mejor este modelo con pocas variables
+
+
+
+>KNN
+
+```{r}
+set.seed(0511)
+data_train$crim01 <- as.factor(data_train$crim01)
+ctrl <- trainControl(method="repeatedcv",repeats = 3) 
+knnFit <- train(crim01~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat, data =data_train, method = "knn", trControl = ctrl, preProcess = c("center","scale"), tuneLength = 20)
+knnFit
+```
+Un K optimo para este metodo de clasificación es 5.
+
+
+```{r}
+train.x <- as.matrix(data_train[,-c(1,14)])
+test.x <- as.matrix(data_test[,-c(1,14)])
+train.y <- as.matrix(data_train$crim01)
+test.y <- as.matrix(data_test$crim01)
+set.seed(0511)
+pred.knn <- knn(train = train.x , test = test.x,cl = train.y,k=5)
+table(pred.knn,test.y)
+```
+
+```{r}
+mean(pred.knn !=test.y)
+```
+
+Este metodo tiene una tasa de error de 7.2% mucho mejor que los anteriores.
+
+
+
+## Capitulo VIII {.tabset .tabset-fade .tabset-pills}
+
+###Punto 7
+
+*  **En el laboratorio, aplicamos bosques aleatorios a los datos de Boston usando mtry = 6 y usando ntree = 25 y ntree = 500. Cree un gráfico que muestre el error de prueba resultante de bosques aleatorios en este conjunto de datos para un rango de valores más amplio para mtry y ntree. Puede modelar su diagrama después de la Figura 8.10. Describa los resultados obtenidos.**
+
+###Punto 8
+
+
+*  **En el laboratorio, se aplicó un árbol de clasificación al conjunto de datos de Carseats después de convertir las ventas en una variable de respuesta cualitativa. Ahora buscaremos predecir las ventas utilizando árboles de regresión y enfoques relacionados, tratando la respuesta como una variable cuantitativa.**
+
+**(a) Divida el conjunto de datos en un conjunto de entrenamiento y un conjunto de prueba.**
+
+**(b) Ajuste un árbol de regresión al conjunto de entrenamiento. Trace el árbol e interprete los resultados. ¿Qué prueba MSE obtienes?**
+
+**(c) Utilice la validación cruzada para determinar el nivel óptimo de complejidad del árbol. ¿La poda del árbol mejora la prueba MSE?**
+
+**(d) Utilice el enfoque de embolsado para analizar estos datos. ¿Qué prueba MSE obtienes? Use la función importance() para determinar qué variables son más importantes.**
+
+**(e) Utilice bosques aleatorios para analizar estos datos. ¿Qué prueba MSE obtienes? Use la función importance() para determinar qué variables son las más importantes. Describa el efecto de m, el número de variables consideradas en cada división, sobre la tasa de error obtenida.**
+
+###Punto 9
+
+* **Este problema involucra el conjunto de datos de OJ que es parte del paquete ISLR.**
+
+**(a) Cree un conjunto de entrenamiento que contenga una muestra aleatoria de 800 observaciones, y un conjunto de prueba que contenga las observaciones restantes.**
+
+**(b) Ajuste un árbol a los datos de entrenamiento, con Compra como respuesta y las otras variables como predictores. Use la función summary() para generar estadísticas resumidas sobre el árbol y describa los resultados obtenidos. ¿Cuál es la tasa de error de entrenamiento? ¿Cuántos nodos terminales tiene el árbol?**
+
+**(c) Escriba el nombre del objeto del árbol para obtener una salida de texto detallada. Elija uno de los nodos terminales e interprete la información que se muestra.**
+
+**(d) Cree un diagrama del árbol e interprete los resultados.**
+
+**(e) Predecir la respuesta en los datos de prueba, y producir una matriz de confusión comparando las etiquetas de prueba con las etiquetas de prueba predichas. ¿Cuál es la tasa de error de prueba?**
+
+**(f) Aplique la función cv.tree() al conjunto de entrenamiento para determinar el tamaño óptimo del árbol.**
+
+**(g) Produzca un diagrama con el tamaño del árbol en el eje xy la tasa de error de clasificación con validación cruzada en el eje y.**
+
+**(h) ¿Qué tamaño de árbol corresponde a la tasa de error de clasificación con validación cruzada más baja?**
+
+**(i) Produzca un árbol podado correspondiente al tamaño óptimo del árbol obtenido mediante validación cruzada. Si la validación cruzada no conduce a la selección de un árbol podado, cree un árbol podado con cinco nodos terminales.**
+
+**(j) Compare las tasas de error de entrenamiento entre los árboles podados y no podados. ¿Cuál es más alto?**
+
+**(k) Compare las tasas de error de prueba entre los árboles podados y no podados. ¿Cuál es más alto?**
+
+###Punto 10
+
+* **Ahora usamos el aumento para predecir el salario en el conjunto de datos de Hitters.**
+
+**(a) Elimine las observaciones para las que se desconoce la información salarial, y luego transforme logarítmicamente los salarios.**
+
+**(b) Cree un conjunto de entrenamiento que consista en las primeras 200 observaciones, y un conjunto de prueba que consista en las observaciones restantes.**
+
+**(c) Realice un refuerzo en el conjunto de entrenamiento con 1,000 árboles para un rango de valores del parámetro de contracción $\lambda$. Produzca un gráfico con diferentes valores de contracción en el eje xy el conjunto de entrenamiento MSE correspondiente en el eje y.**
+
+**(d) Produzca un gráfico con diferentes valores de contracción en el eje xy el conjunto de prueba MSE correspondiente en el eje y.**
+
+**(e) Compare la prueba MSE de refuerzo con la prueba MSE que resulta de aplicar dos de los enfoques de regresión vistos en los Capítulos 3 y 6.**
+
+**(f) ¿Qué variables parecen ser los predictores más importantes en el modelo impulsado?**
+
+**(g) Ahora aplique el embolsado al conjunto de entrenamiento. ¿Cuál es el conjunto de prueba MSE para este enfoque?**
+
+###Punto 11
+
+* **Esta pregunta utiliza el conjunto de datos de Caravan.**
+
+**(a) Cree un conjunto de entrenamiento que consista en las primeras 1,000 observaciones,y un conjunto de prueba que consta de las observaciones restantes.**
+
+**(b) Ajuste un modelo de refuerzo al conjunto de entrenamiento con Compra como respuesta y las otras variables como predictores. Use 1,000 árboles y un valor de contracción de 0.01. ¿Qué predictores parecen ser los más importantes?**
+
+**(c) Utilice el modelo de refuerzo para predecir la respuesta en los datos de la prueba. Predecir que una persona realizará una compra si la probabilidad estimada de compra es superior al 20%. Forme una matriz de confusión. ¿Qué fracción de las personas que predijeron hacer una compra en realidad la hacen? ¿Cómo se compara esto con los resultados obtenidos al aplicar KNN o regresión logística a este conjunto de datos?**
+
+###Punto 12
+
+* **Aplique impulso, embolsado y bosques aleatorios a un conjunto de datos de su elección. Asegúrese de ajustar los modelos en un conjunto de entrenamiento y evaluar su desempeño en un conjunto de prueba. ¿Cuán precisos son los resultados en comparación con métodos simples como la regresión lineal o logística? ¿Cuál de estos enfoques produce el mejor rendimiento?**
+
+## Capitulo VIIII {.tabset .tabset-fade .tabset-pills}
+
+###Punto 4
+
+* **Genere un conjunto de datos simulados de dos clases con 100 observaciones y dos características en las que haya una separación visible pero no lineal entre las dos clases. Muestre que en esta configuración, una máquina de vectores de soporte con un núcleo polinomial (con un grado mayor que 1) o un núcleo radial superará a un clasificador de vectores de soporte en los datos de entrenamiento. ¿Qué técnica funciona mejor en los datos de prueba? Haga tramas e informe la capacitación y pruebe las tasas de error para respaldar sus afirmaciones.**
+
+###Punto 5
+
+* **Hemos visto que podemos ajustar un SVM con un núcleo no lineal para realizar la clasificación utilizando un límite de decisión no lineal. Ahora veremos que también podemos obtener un límite de decisión no lineal al realizar una regresión logística utilizando transformaciones no lineales de las características.**
+
+**(a) Genere un conjunto de datos con n = 500 y p = 2, de modo que las observaciones pertenezcan a dos clases con un límite de decisión cuadrático entre ellas. Por ejemplo, puede hacer esto de la siguiente manera:**
+
+**> x1 = runif (500) -0.5**
+
+**> x2 = runif (500) -0.5**
+
+**> y = 1 * (x1 ^ 2-x2 ^ 2> 0)**
+
+**(b) Grafique las observaciones, coloreadas de acuerdo con sus etiquetas de clase. Su diagrama debe mostrar X1 en el eje xy X2 en el eje y.**
+
+**(c) Ajuste un modelo de regresión logística a los datos, utilizando X1 y X2 como predictores.**
+
+**(d) Aplique este modelo a los datos de entrenamiento para obtener una etiqueta de clase predicha para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas. El límite de decisión debe ser lineal.**
+
+**(e) Ahora ajuste un modelo de regresión logística a los datos utilizando funciones no lineales de X1 y X2 como predictores (por ejemplo, X12, X1 × X2, log (X2), etc.).**
+
+**(f) Aplique este modelo a los datos de entrenamiento para obtener una etiqueta de clase predicha para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas. El límite de decisión debe ser obviamente no lineal. Si no es así, repita (a) - (e) hasta que encuentre un ejemplo en el que las etiquetas de clase predichas sean obviamente no lineales.**
+
+**(g) Ajuste un clasificador de vector de soporte a los datos con X1 y X2 como predictores. Obtenga una predicción de clase para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas.**
+
+**(h) Ajuste un SVM usando un núcleo no lineal a los datos. Obtenga una predicción de clase para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas.**
+
+**(i) Comente sus resultados.**
+
+###Punto 6
+
+* **Al final de la Sección 9.6.1, se afirma que, en el caso de los datos que son apenas linealmente separables, un clasificador de vectores de soporte con un pequeño valor de costo que clasifica erróneamente un par de observaciones de entrenamiento puede funcionar mejor en los datos de prueba que uno con un enorme valor de costo que no clasifica erróneamente ninguna observación de capacitación. Ahora investigará este reclamo.**
+
+**(a) Genere datos de dos clases con p = 2 de tal manera que las clases sean apenas separables linealmente.**
+
+**(b) Calcule las tasas de error de validación cruzada para los clasificadores de vectores de soporte con un rango de valores de costo. ¿Cuántos errores de capacitación están mal clasificados para cada valor de costo considerado, y cómo se relaciona esto con los errores de validación cruzada obtenidos?**
+
+**(c) Genere un conjunto de datos de prueba apropiado y calcule los errores de prueba correspondientes a cada uno de los valores de costo considerados. ¿Qué valor del costo conduce a la menor cantidad de errores de prueba, y cómo se compara esto con los valores de costo que producen la menor cantidad de errores de capacitación y la menor cantidad de errores de validación cruzada?**
+
+**(d) Discuta sus resultados.**
+
+###Punto 7
+
+* **En este problema, utilizará enfoques de vectores de soporte para predecir si un automóvil determinado obtiene un millaje de gasolina alto o bajo en función del conjunto de datos automático.**
+
+**(a) Cree una variable binaria que tome un 1 para los automóviles con millaje de gasolina por encima de la mediana, y un 0 para automóviles con millaje de gasolina por debajo de la mediana.**
+
+**(b) Ajuste un clasificador de vector de soporte a los datos con varios valores de costo, para predecir si un automóvil obtiene un millaje de gasolina alto o bajo. Informe los errores de validación cruzada asociados con diferentes valores de este parámetro. Comenta tus resultados.**
+
+**(c) Ahora repita (b), esta vez usando SVM con núcleos de base radial y polinomial, con diferentes valores de gamma y grado y costo. Comenta tus resultados.**
+
+**(d) Haga algunos gráficos para respaldar sus afirmaciones en (b) y (c). Sugerencia: En el laboratorio, utilizamos la función plot() para objetos svm solo en casos con p = 2. Cuando p> 2, puede usar la función plot() para crear gráficos que muestren pares de variables a la vez. Esencialmente, en lugar de escribir**
+
+**> plot (svmfit, dat)**
+
+**donde svmfit contiene su modelo ajustado y dat es un marco de datos que contiene sus datos, puede escribir*
+
+**> plot (svmfit, dat, x1∼x4)**
+
+**para graficar solo las variables primera y cuarta. Sin embargo, debe reemplazar x1 y x4 con los nombres correctos de las variables. Para obtener más información, escriba ?Plot.svm.**
+
+###Punto 8
+
+
+* **Este problema involucra el conjunto de datos de OJ que es parte del paquete ISLR.**
+
+**(a) Cree un conjunto de entrenamiento que contenga una muestra aleatoria de 800 observaciones, y un conjunto de prueba que contenga las observaciones restantes.**
+
+**(b) Ajuste un clasificador de vector de soporte a los datos de entrenamiento usando cost = 0.01, con Compra como respuesta y las otras variables como predictores. Use la función summary() para generar estadísticas resumidas y describir los resultados obtenidos.**
+
+**(c) ¿Cuáles son las tasas de error de capacitación y prueba?**
+
+**(d) Use la función tune() para seleccionar un costo óptimo. Considere values en el rango de 0.01 a 10.**
+
+**(e) Calcule las tasas de error de entrenamiento y prueba usando este nuevo valor por el cost**
+
+**(f) Repita las partes (b) a (e) usando una máquina de vectores de soporte con un núcleo radial Use el valor predeterminado para gamma.**
+
+**(g) Repita las partes (b) a (e) usando una máquina de vectores de soporte con un núcleo polinomial Establecer grado = 2.**
+
+**(h) En general, ¿qué enfoque parece dar los mejores resultados con estos datos?**
+
