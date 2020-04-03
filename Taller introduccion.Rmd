@@ -1245,9 +1245,75 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 **(a) Genere datos de dos clases con p = 2 de tal manera que las clases sean apenas separables linealmente.**
 
+```{r}
+set.seed(1)
+x.one <- runif(500, 0, 90)
+y.one <- runif(500, x.one + 10, 100)
+x.one.noise <- runif(50, 20, 80)
+y.one.noise <- 5/4 * (x.one.noise - 10) + 0.1
+
+x.zero <- runif(500, 10, 100)
+y.zero <- runif(500, 0, x.zero - 10)
+x.zero.noise <- runif(50, 20, 80)
+y.zero.noise <- 5/4 * (x.zero.noise - 10) - 0.1
+
+class.one <- seq(1, 550)
+x <- c(x.one, x.one.noise, x.zero, x.zero.noise)
+y <- c(y.one, y.one.noise, y.zero, y.zero.noise)
+
+plot(x[class.one], y[class.one], col = "blue", pch = 5, ylim = c(0, 100))
+points(x[-class.one], y[-class.one], col = "lightblue", pch = 5)
+```
+
+
 **(b) Calcule las tasas de error de validación cruzada para los clasificadores de vectores de soporte con un rango de valores de costo. ¿Cuántos errores de capacitación están mal clasificados para cada valor de costo considerado, y cómo se relaciona esto con los errores de validación cruzada obtenidos?**
 
+```{r}
+set.seed(2)
+z <- rep(0, 1100)
+z[class.one] <- 1
+data <- data.frame(x = x, y = y, z = as.factor(z))
+tune.out <- tune(svm, z ~ ., data = data, kernel = "linear", ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100, 1000, 10000)))
+summary(tune.out)
+```
+```{r}
+data.frame(cost = tune.out$performance$cost, misclass = tune.out$performance$error * 1100)
+```
+
+
 **(c) Genere un conjunto de datos de prueba apropiado y calcule los errores de prueba correspondientes a cada uno de los valores de costo considerados. ¿Qué valor del costo conduce a la menor cantidad de errores de prueba, y cómo se compara esto con los valores de costo que producen la menor cantidad de errores de capacitación y la menor cantidad de errores de validación cruzada?**
+
+```{r}
+x.test <- runif(1000, 0, 100)
+class.one <- sample(1000, 500)
+y.test <- rep(NA, 1000)
+# Set y > x for class.one
+for (i in class.one) {
+    y.test[i] <- runif(1, x.test[i], 100)
+}
+# set y < x for class.zero
+for (i in setdiff(1:1000, class.one)) {
+    y.test[i] <- runif(1, 0, x.test[i])
+}
+plot(x.test[class.one], y.test[class.one], col = "blue", pch = 5)
+points(x.test[-class.one], y.test[-class.one], col = "lightblue", pch = 5)
+
+```
+```{r}
+set.seed(3)
+z.test <- rep(0, 1000)
+z.test[class.one] <- 1
+data.test <- data.frame(x = x.test, y = y.test, z = as.factor(z.test))
+costs <- c(0.01, 0.1, 1, 5, 10, 100, 1000, 10000)
+test.err <- rep(NA, length(costs))
+for (i in 1:length(costs)) {
+    svm.fit <- svm(z ~ ., data = data, kernel = "linear", cost = costs[i])
+    pred <- predict(svm.fit, data.test)
+    test.err[i] <- sum(pred != data.test$z)
+}
+data.frame(cost = costs, misclass = test.err)
+```
+
 
 **(d) Discuta sus resultados.**
 
@@ -1257,7 +1323,9 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 **(a) Cree una variable binaria que tome un 1 para los automóviles con millaje de gasolina por encima de la mediana, y un 0 para automóviles con millaje de gasolina por debajo de la mediana.**
 
+
 **(b) Ajuste un clasificador de vector de soporte a los datos con varios valores de costo, para predecir si un automóvil obtiene un millaje de gasolina alto o bajo. Informe los errores de validación cruzada asociados con diferentes valores de este parámetro. Comenta tus resultados.**
+
 
 **(c) Ahora repita (b), esta vez usando SVM con núcleos de base radial y polinomial, con diferentes valores de gamma y grado y costo. Comenta tus resultados.**
 
@@ -1265,7 +1333,7 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 **> plot (svmfit, dat)**
 
-**donde svmfit contiene su modelo ajustado y dat es un marco de datos que contiene sus datos, puede escribir*
+**donde svmfit contiene su modelo ajustado y dat es un marco de datos que contiene sus datos, puede escribir**
 
 **> plot (svmfit, dat, x1∼x4)**
 
