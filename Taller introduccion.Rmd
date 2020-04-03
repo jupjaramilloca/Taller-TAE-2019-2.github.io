@@ -1139,6 +1139,7 @@ table(predict = predict(svm.radial, data.test), truth = data.test$z)
 
 * **Hemos visto que podemos ajustar un SVM con un núcleo no lineal para realizar la clasificación utilizando un límite de decisión no lineal. Ahora veremos que también podemos obtener un límite de decisión no lineal al realizar una regresión logística utilizando transformaciones no lineales de las características.**
 
+
 **(a) Genere un conjunto de datos con n = 500 y p = 2, de modo que las observaciones pertenezcan a dos clases con un límite de decisión cuadrático entre ellas. Por ejemplo, puede hacer esto de la siguiente manera:**
 
 **> x1 = runif (500) -0.5**
@@ -1147,21 +1148,96 @@ table(predict = predict(svm.radial, data.test), truth = data.test$z)
 
 **> y = 1 * (x1 ^ 2-x2 ^ 2> 0)**
 
+```{r}
+set.seed(1)
+x1 <- runif(500) - 0.5
+x2 <- runif(500) - 0.5
+y <- 1 * (x1^2 - x2^2 > 0)
+```
+
+
 **(b) Grafique las observaciones, coloreadas de acuerdo con sus etiquetas de clase. Su diagrama debe mostrar X1 en el eje xy X2 en el eje y.**
+
+```{r}
+plot(x1, x2, xlab = "X1", ylab = "X2", col = (5 - y), pch = (2 - y))
+```
+
 
 **(c) Ajuste un modelo de regresión logística a los datos, utilizando X1 y X2 como predictores.**
 
+```{r}
+logit.fit <- glm(y ~ x1 + x2, family = "binomial")
+summary(logit.fit)
+```
+
+#### Ninguna de las variables es estadísticamente significativa.
+
 **(d) Aplique este modelo a los datos de entrenamiento para obtener una etiqueta de clase predicha para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas. El límite de decisión debe ser lineal.**
+
+```{r}
+data <- data.frame(x1 = x1, x2 = x2, y = y)
+probs <- predict(logit.fit, data, type = "response")
+preds <- rep(0, 500)
+preds[probs > 0.47] <- 1
+plot(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (6 - 1), pch = (2 - 1), xlab = "X1", ylab = "X2")
+points(data[preds == 0, ]$x1, data[preds == 0, ]$x2, col = (4 - 0), pch = (2 - 0))
+```
+
+#### El límite de decisión es lineal.
 
 **(e) Ahora ajuste un modelo de regresión logística a los datos utilizando funciones no lineales de X1 y X2 como predictores (por ejemplo, X12, X1 × X2, log (X2), etc.).**
 
+```{r}
+logitnl.fit <- glm(y ~ poly(x1, 2) + poly(x2, 2) + I(x1 * x2), family = "binomial")
+```
+
+```{r}
+summary(logitnl.fit)
+```
+
+#### De nuevo ninguna de las variables son estadisticamente significativas
+
+
 **(f) Aplique este modelo a los datos de entrenamiento para obtener una etiqueta de clase predicha para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas. El límite de decisión debe ser obviamente no lineal. Si no es así, repita (a) - (e) hasta que encuentre un ejemplo en el que las etiquetas de clase predichas sean obviamente no lineales.**
+
+```{r}
+probs <- predict(logitnl.fit, data, type = "response")
+preds <- rep(0, 500)
+preds[probs > 0.47] <- 1
+plot(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (6 - 1), pch = (2 - 1), xlab = "X1", ylab = "X2")
+points(data[preds == 0, ]$x1, data[preds == 0, ]$x2, col = (4 - 0), pch = (2 - 0))
+```
+
+#### El límite de decisión no lineal es muy similar al límite de decisión real.
+
 
 **(g) Ajuste un clasificador de vector de soporte a los datos con X1 y X2 como predictores. Obtenga una predicción de clase para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas.**
 
+```{r}
+data$y <- as.factor(data$y)
+svm.fit <- svm(y ~ x1 + x2, data, kernel = "linear", cost = 0.01)
+preds <- predict(svm.fit, data)
+plot(data[preds == 0, ]$x1, data[preds == 0, ]$x2, col = (5 - 0), pch = (2 - 0), xlab = "X1", ylab = "X2")
+points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (4 - 1), pch = (2 - 1))
+```
+
+#### Este clasificador de vectores de soporte clasifica todos los puntos en una sola clase.
+
 **(h) Ajuste un SVM usando un núcleo no lineal a los datos. Obtenga una predicción de clase para cada observación de entrenamiento. Trace las observaciones, coloreadas de acuerdo con las etiquetas de clase predichas.**
 
+```{r}
+data$y <- as.factor(data$y)
+svmnl.fit <- svm(y ~ x1 + x2, data, kernel = "radial", gamma = 1)
+preds <- predict(svmnl.fit, data)
+plot(data[preds == 0, ]$x1, data[preds == 0, ]$x2, col = (5 - 0), pch = (1 - 0), xlab = "X1", ylab = "X2")
+points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1))
+```
+
+#### De nuevo el límite de decisión no lineal es muy similar al límite de decisión verdadero.
+
 **(i) Comente sus resultados.**
+
+#### Con los anteriores resultados podemos concluir que las maquinas de soporte con metodos no lineal y regresión logística con términos de interacción son muy efectivas. 
 
 ###Punto 6
 
