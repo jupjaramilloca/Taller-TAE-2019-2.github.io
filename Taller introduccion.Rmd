@@ -1036,14 +1036,125 @@ El MSE es de 0.2339 es mucho mejor que los otros metodos por el momento.
 
 **(a) Cree un conjunto de entrenamiento que consista en las primeras 1,000 observaciones,y un conjunto de prueba que consta de las observaciones restantes.**
 
+
+```{r}
+library(ISLR)
+data(Caravan)
+set.seed(1)
+train <- 1:1000
+Caravan$Purchase <- ifelse(Caravan$Purchase=="Yes",1,0)
+
+Caravan.train <- Caravan[train,]
+Caravan.test <- Caravan[-train,]
+
+```
+
+
 **(b) Ajuste un modelo de refuerzo al conjunto de entrenamiento con Compra como respuesta y las otras variables como predictores. Use 1,000 árboles y un valor de contracción de 0.01. ¿Qué predictores parecen ser los más importantes?**
 
+```{r}
+set.seed(0511)
+library(gbm)
+boost.caravan <- gbm(Purchase~.,data = Caravan.train,distribution = "gaussian",
+                     n.trees = 1000,shrinkage = 0.01)
+
+summary(boost.caravan)
+```
+En la tabla observamos PPERSAUT y MKOOPKLA son las mas importantes.
+
 **(c) Utilice el modelo de refuerzo para predecir la respuesta en los datos de la prueba. Predecir que una persona realizará una compra si la probabilidad estimada de compra es superior al 20%. Forme una matriz de confusión. ¿Qué fracción de las personas que predijeron hacer una compra en realidad la hacen? ¿Cómo se compara esto con los resultados obtenidos al aplicar KNN o regresión logística a este conjunto de datos?**
+
+```{r}
+library(caret)
+probs.test <- predict(boost.caravan,Caravan.test,n.trees = 1000,type = "response")
+
+predict.test <- ifelse( probs.test > 0.2, 1 , 0)
+matrixx <- confusionMatrix(as.factor(predict.test),as.factor(Caravan.test$Purchase))
+matrixx
+```
+
+Observamos que la personas que en realidad harán una compra la predicción tiene un precisión del 4.15%
+
+```{r}
+logit.caravan <- glm(Purchase ~ ., data = Caravan.train, family = "binomial")
+```
+```{r}
+probs.test2 <- predict(logit.caravan,Caravan.test,type = "response")
+pred.test2 <- ifelse(probs.test > 0.2, 1, 0)
+matriz <- confusionMatrix(as.factor(pred.test2), as.factor(Caravan.test$Purchase))
+matriz
+```
+Utilizando la regresion logística para predecir las personas que realmente hicieron una compra tiene un apresición de 4.1%.
 
 ###Punto 12
 
 * **Aplique impulso, embolsado y bosques aleatorios a un conjunto de datos de su elección. Asegúrese de ajustar los modelos en un conjunto de entrenamiento y evaluar su desempeño en un conjunto de prueba. ¿Cuán precisos son los resultados en comparación con métodos simples como la regresión lineal o logística? ¿Cuál de estos enfoques produce el mejor rendimiento?**
 
+
+Uitilizando una base de datos de niños deportistas en Antiquia del 2018 de morfologia. Con esta base de intentara clasificar el peso en kg por ensima y por debajo de la mediana.
+
+```{r}
+Morfo <- read.csv2("C:/Users/jupja/Desktop/UN/TAE/Taller-TAE-2019-2.github.io/Morfologia_ninos_ANT.csv",sep = ";")
+Morfo <- Morfo[,-1]
+Morfo <- na.omit(Morfo)
+peso01 <- rep(0,length(Morfo$Peso.kg.))
+peso01[Morfo$Peso.kg. > median(Morfo$Peso.kg.)]<-1
+Morfo$peso01 <- peso01
+Morfo <- Morfo[,-1]
+train <- sample(1:nrow(Morfo),length(Morfo$peso01)*0.70,replace = FALSE)
+Morfo.train <- Morfo[train,]
+Morfo.test <- Morfo[-train,]
+
+```
+
+>Aplicando Boosting
+
+```{r}
+set.seed(0511)
+bf <- gbm(peso01~.,Morfo.train,distribution = "bernoulli",n.trees = 5000)
+bprobs  <- predict(bf,newdata = Morfo.test,n.trees = 5000)
+bpredic <- ifelse(bprobs >0.5,1,0)
+table(bpredic,Morfo.test$peso01)
+```
+Podemos concluir con lo anterior que este modelo puede clasificar un 96.62% de la veces el peso de los niños por encima y por debajo de la mediana.
+
+>regresión logistica
+
+```{r}
+logit.mor <- glm(peso01~.,data = Morfo.train,family = "binomial")
+logit.probs <- predict(logit.mor,newdata = Morfo.test,type = "response")
+logit.pred <- ifelse(logit.probs >0.5 ,1,0)
+table(logit.pred,Morfo.test$peso01)
+```
+Tenemos un error de clasifación de 3.83%. 
+
+>bosques aleatorios
+
+```{r}
+library(randomForest)
+
+forest.morfo <- randomForest(peso01~.,data = Morfo.test,mtry=5)
+for.probs <- predict(forest.morfo,newdata = Morfo.test)
+for.predic <- ifelse(for.probs >0.5,1,0)
+matrixx <- confusionMatrix(as.factor(for.predic),as.factor(Morfo.test$peso01))
+matrixx
+```
+Concluimos que el error de predicción 0.09% para clasificar los pesos por encima y por debajo de la mediana.
+
+>regresión lineal.
+
+```{r}
+lm.morf <- lm(peso01~.,Morfo.train)
+probs.morf <- predict(lm.morf,Morfo.test)  
+predic.morf <- ifelse(probs.morf>0.5,1,0)
+matrixx <- confusionMatrix(as.factor(predic.morf),as.factor(Morfo.test$peso01))
+matrixx
+```
+Observamos que el modelo tiene un error de predicción de 6.02%.
+
+
+**Conclusión:** El mejor modelo para la predicción son los bosques aleatorios con un error de 0.09% a comparación de los demas. 
+ 
 ## Capitulo IX {.tabset .tabset-fade .tabset-pills}
 
 ###Punto 4
