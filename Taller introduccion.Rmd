@@ -13,12 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
-#Ejercicios {.tabset .tabset-fade .tabset-pills}
+# Ejercicios {.tabset .tabset-fade .tabset-pills}
 
 ## Capitulo IV {.tabset .tabset-fade .tabset-pills}
 
 
-###Punto 10
+### Punto 10
 
 *  **Estas pregunta deben respoderse utilizando el conjunto de datos _Weekly_, que es parte del paquete _ISLR_. Estos datos son similares en naturaleza a datos de _Smarket_ de este capítulo, excepto que contiene 1,089 Regresos semanales durante 21 años, desde principios de 1990 hasta el final del 2010.**
 
@@ -651,7 +651,7 @@ Este metodo tiene una tasa de error de 7.2% mucho mejor que los anteriores.
 
 ## Capitulo VIII {.tabset .tabset-fade .tabset-pills}
 
-###Punto 7
+### Punto 7
 
 *  **En el laboratorio, aplicamos bosques aleatorios a los datos de Boston usando mtry = 6 y usando ntree = 25 y ntree = 500. Cree un gráfico que muestre el error de prueba resultante de bosques aleatorios en este conjunto de datos para un rango de valores más amplio para mtry y ntree. Puede modelar su diagrama después de la Figura 8.10. Describa los resultados obtenidos.**
 
@@ -694,7 +694,7 @@ ggplot(xy)+geom_line(aes(x=arboles,y = value,color=variable))+
 Con esta grafica podemos observar que la prueba MSE es muy alta para un solo arbol, a mededida que aunmenta los arboles el error se estabiliza aproximademente cuando hay 150 arboles, La estaibilización se presenta para los tres valores de "m". El m que menor reprensenta error es m = $sqrt(p)$.Ojo que al variar la semilla se podra concluir diferente.
 
 
-###Punto 8
+### Punto 8
 
 
 *  **En el laboratorio, se aplicó un árbol de clasificación al conjunto de datos de Carseats después de convertir las ventas en una variable de respuesta cualitativa. Ahora buscaremos predecir las ventas utilizando árboles de regresión y enfoques relacionados, tratando la respuesta como una variable cuantitativa.**
@@ -797,7 +797,7 @@ importance(bag.carseats)
 Con lo anterior cuncluimos que las mejores varibales predictoras para el analisis son las mismas que el numeral anterior.
 
 
-###Punto 9
+### Punto 9
 
 * **Este problema involucra el conjunto de datos de OJ que es parte del paquete ISLR.**
 
@@ -909,7 +909,7 @@ matrix
 observamos que bajo la presicion del modelo notablemente con respecto al árbol sin podar.
 
 
-###Punto 10
+### Punto 10
 
 * **Ahora usamos el aumento para predecir el salario en el conjunto de datos de Hitters.**
 
@@ -1030,7 +1030,7 @@ yhat.bag <- predict(bag.hitters, newdata = Hitters.test)
 mean((yhat.bag - Hitters.test$Salary)^2)
 ```
 El MSE es de 0.2339 es mucho mejor que los otros metodos por el momento.
-###Punto 11
+### Punto 11
 
 * **Esta pregunta utiliza el conjunto de datos de Caravan.**
 
@@ -1040,13 +1040,13 @@ El MSE es de 0.2339 es mucho mejor que los otros metodos por el momento.
 
 **(c) Utilice el modelo de refuerzo para predecir la respuesta en los datos de la prueba. Predecir que una persona realizará una compra si la probabilidad estimada de compra es superior al 20%. Forme una matriz de confusión. ¿Qué fracción de las personas que predijeron hacer una compra en realidad la hacen? ¿Cómo se compara esto con los resultados obtenidos al aplicar KNN o regresión logística a este conjunto de datos?**
 
-###Punto 12
+### Punto 12
 
 * **Aplique impulso, embolsado y bosques aleatorios a un conjunto de datos de su elección. Asegúrese de ajustar los modelos en un conjunto de entrenamiento y evaluar su desempeño en un conjunto de prueba. ¿Cuán precisos son los resultados en comparación con métodos simples como la regresión lineal o logística? ¿Cuál de estos enfoques produce el mejor rendimiento?**
 
 ## Capitulo IX {.tabset .tabset-fade .tabset-pills}
 
-###Punto 4
+### Punto 4
 
 * **Genere un conjunto de datos simulados de dos clases con 100 observaciones y dos características en las que haya una separación visible pero no lineal entre las dos clases. Muestre que en esta configuración, una máquina de vectores de soporte con un núcleo polinomial (con un grado mayor que 1) o un núcleo radial superará a un clasificador de vectores de soporte en los datos de entrenamiento. ¿Qué técnica funciona mejor en los datos de prueba? Haga tramas e informe la capacitación y pruebe las tasas de error para respaldar sus afirmaciones.**
 
@@ -1135,7 +1135,7 @@ table(predict = predict(svm.radial, data.test), truth = data.test$z)
 
 #### Como vemos en los resultados anteriores, las máquinas de vectores de soporte lineal, polinomial y radial clasifican, respectivamente 4, 2 y 0 observaciones de forma incorrecta. Entonces, el núcleo radial es el mejor modelo en este caso.
 
-###Punto 5
+### Punto 5
 
 * **Hemos visto que podemos ajustar un SVM con un núcleo no lineal para realizar la clasificación utilizando un límite de decisión no lineal. Ahora veremos que también podemos obtener un límite de decisión no lineal al realizar una regresión logística utilizando transformaciones no lineales de las características.**
 
@@ -1239,7 +1239,7 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 #### Con los anteriores resultados podemos concluir que las maquinas de soporte con metodos no lineal y regresión logística con términos de interacción son muy efectivas. 
 
-###Punto 6
+### Punto 6
 
 * **Al final de la Sección 9.6.1, se afirma que, en el caso de los datos que son apenas linealmente separables, un clasificador de vectores de soporte con un pequeño valor de costo que clasifica erróneamente un par de observaciones de entrenamiento puede funcionar mejor en los datos de prueba que uno con un enorme valor de costo que no clasifica erróneamente ninguna observación de capacitación. Ahora investigará este reclamo.**
 
@@ -1251,7 +1251,7 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 **(d) Discuta sus resultados.**
 
-###Punto 7
+### Punto 7
 
 * **En este problema, utilizará enfoques de vectores de soporte para predecir si un automóvil determinado obtiene un millaje de gasolina alto o bajo en función del conjunto de datos automático.**
 
@@ -1271,7 +1271,7 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 
 **para graficar solo las variables primera y cuarta. Sin embargo, debe reemplazar x1 y x4 con los nombres correctos de las variables. Para obtener más información, escriba ?Plot.svm.**
 
-###Punto 8
+### Punto 8
 
 
 * **Este problema involucra el conjunto de datos de OJ que es parte del paquete ISLR.**
