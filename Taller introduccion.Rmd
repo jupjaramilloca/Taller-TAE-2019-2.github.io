@@ -1050,6 +1050,91 @@ El MSE es de 0.2339 es mucho mejor que los otros metodos por el momento.
 
 * **Genere un conjunto de datos simulados de dos clases con 100 observaciones y dos características en las que haya una separación visible pero no lineal entre las dos clases. Muestre que en esta configuración, una máquina de vectores de soporte con un núcleo polinomial (con un grado mayor que 1) o un núcleo radial superará a un clasificador de vectores de soporte en los datos de entrenamiento. ¿Qué técnica funciona mejor en los datos de prueba? Haga tramas e informe la capacitación y pruebe las tasas de error para respaldar sus afirmaciones.**
 
+```{r}
+library(e1071)
+set.seed(1)
+x <- rnorm(100)
+y <- 4 * x^3 + 1 + rnorm(100)
+class <- sample(100, 50)
+y[class] <- y[class] + 3
+y[-class] <- y[-class] - 3
+plot(x[class], y[class], col = "green", xlab = "X", ylab = "Y", ylim = c(-10, 25), xlim = c(-1.5, 2.0))
+points(x[-class], y[-class], col = "blue")
+```
+
+####Clasificador de soporte en los datos de entrenamiento
+
+```{r}
+z <- rep(-1, 100)
+z[class] <- 1
+data <- data.frame(x = x, y = y, z = as.factor(z))
+train <- sample(100, 50)
+data.train <- data[train, ]
+data.test <- data[-train, ]
+svm.linear <- svm(z ~ ., data = data.train, kernel = "linear", cost = 10)
+plot(svm.linear, data.train)
+```
+
+```{r}
+table(predict = predict(svm.linear, data.train), truth = data.train$z)
+```
+
+####El clasificador de vectores de soporte comete 4 errores en los datos de entrenamiento.
+
+####Maquina de vectores de soporte con un núcleo polinomial.
+
+
+
+```{r}
+svm.poly <- svm(z ~ ., data = data.train, kernel = "polynomial", cost = 10)
+plot(svm.poly, data.train)
+```
+
+
+```{r}
+table(predict = predict(svm.poly, data.train), truth = data.train$z)
+```
+
+#### La máquina de vectores de soporte comete 2 errores en los datos de entrenamiento.
+
+```{r}
+svm.radial <- svm(z ~ ., data = data.train, kernel = "radial", gamma = 1, cost = 10)
+plot(svm.radial, data.train)
+```
+
+```{r}
+table(predict = predict(svm.radial, data.train), truth = data.train$z)
+```
+
+####La máquina con un núcleo radial comete  0  errores en los datos de entrenamiento.
+
+####Aplicando a los datos de prueba.
+
+```{r}
+plot(svm.linear, data.test)
+```
+
+```{r}
+table(predict = predict(svm.linear, data.test), truth = data.test$z)
+```
+```{r}
+plot(svm.poly, data.test)
+```
+
+```{r}
+table(predict = predict(svm.poly, data.test), truth = data.test$z)
+```
+
+```{r}
+plot(svm.radial, data.test)
+```
+
+```{r}
+table(predict = predict(svm.radial, data.test), truth = data.test$z)
+```
+
+#### Como vemos en los resultados anteriores, las máquinas de vectores de soporte lineal, polinomial y radial clasifican, respectivamente 4, 2 y 0 observaciones de forma incorrecta. Entonces, el núcleo radial es el mejor modelo en este caso.
+
 ###Punto 5
 
 * **Hemos visto que podemos ajustar un SVM con un núcleo no lineal para realizar la clasificación utilizando un límite de decisión no lineal. Ahora veremos que también podemos obtener un límite de decisión no lineal al realizar una regresión logística utilizando transformaciones no lineales de las características.**
