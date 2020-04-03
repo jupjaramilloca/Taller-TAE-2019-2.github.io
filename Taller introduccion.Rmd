@@ -1044,7 +1044,7 @@ El MSE es de 0.2339 es mucho mejor que los otros metodos por el momento.
 
 * **Aplique impulso, embolsado y bosques aleatorios a un conjunto de datos de su elección. Asegúrese de ajustar los modelos en un conjunto de entrenamiento y evaluar su desempeño en un conjunto de prueba. ¿Cuán precisos son los resultados en comparación con métodos simples como la regresión lineal o logística? ¿Cuál de estos enfoques produce el mejor rendimiento?**
 
-## Capitulo VIIII {.tabset .tabset-fade .tabset-pills}
+## Capitulo IX {.tabset .tabset-fade .tabset-pills}
 
 ###Punto 4
 
