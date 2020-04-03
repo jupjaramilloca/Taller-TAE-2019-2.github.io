@@ -1055,18 +1055,18 @@ library(e1071)
 set.seed(1)
 x <- rnorm(100)
 y <- 4 * x^3 + 1 + rnorm(100)
-class <- sample(100, 50)
-y[class] <- y[class] + 3
-y[-class] <- y[-class] - 3
-plot(x[class], y[class], col = "green", xlab = "X", ylab = "Y", ylim = c(-10, 25), xlim = c(-1.5, 2.0))
-points(x[-class], y[-class], col = "blue")
+clase <- sample(100, 50)
+y[clase] <- y[clase] + 3
+y[-clase] <- y[-clase] - 3
+plot(x[clase], y[clase], col = "green", xlab = "X", ylab = "Y", ylim = c(-10, 25), xlim = c(-1.5, 2.0))
+points(x[-clase], y[-clase], col = "blue")
 ```
 
 #### Clasificador de soporte en los datos de entrenamiento
 
 ```{r}
 z <- rep(-1, 100)
-z[class] <- 1
+z[clase] <- 1
 data <- data.frame(x = x, y = y, z = as.factor(z))
 train <- sample(100, 50)
 data.train <- data[train, ]
@@ -1246,76 +1246,82 @@ points(data[preds == 1, ]$x1, data[preds == 1, ]$x2, col = (5 - 1), pch = (2 - 1
 **(a) Genere datos de dos clases con p = 2 de tal manera que las clases sean apenas separables linealmente.**
 
 ```{r}
-set.seed(1)
-x.one <- runif(500, 0, 90)
-y.one <- runif(500, x.one + 10, 100)
-x.one.noise <- runif(50, 20, 80)
-y.one.noise <- 5/4 * (x.one.noise - 10) + 0.1
+set.seed(123)
+x.uno <- runif(500, 0, 90)
+y.uno <- runif(500, x.uno + 10, 100)
+x.uno.noise <- runif(50, 20, 80)
+y.uno.noise <- 5/4 * (x.uno.noise - 10) + 0.1
 
-x.zero <- runif(500, 10, 100)
-y.zero <- runif(500, 0, x.zero - 10)
-x.zero.noise <- runif(50, 20, 80)
-y.zero.noise <- 5/4 * (x.zero.noise - 10) - 0.1
+x.cero <- runif(500, 10, 100)
+y.cero <- runif(500, 0, x.cero - 10)
+x.cero.noise <- runif(50, 20, 80)
+y.cero.noise <- 5/4 * (x.cero.noise - 10) - 0.1
 
-class.one <- seq(1, 550)
-x <- c(x.one, x.one.noise, x.zero, x.zero.noise)
-y <- c(y.one, y.one.noise, y.zero, y.zero.noise)
+clase.uno <- seq(1, 550)
+x <- c(x.uno, x.uno.noise, x.cero, x.cero.noise)
+y <- c(y.uno, y.uno.noise, y.cero, y.cero.noise)
 
-plot(x[class.one], y[class.one], col = "blue", pch = 5, ylim = c(0, 100))
-points(x[-class.one], y[-class.one], col = "lightblue", pch = 5)
+plot(x[clase.uno], y[clase.uno], col = "blue", pch = 5, ylim = c(0, 100))
+points(x[-clase.uno], y[-clase.uno], col = "lightblue", pch = 5)
 ```
 
 
 **(b) Calcule las tasas de error de validación cruzada para los clasificadores de vectores de soporte con un rango de valores de costo. ¿Cuántos errores de capacitación están mal clasificados para cada valor de costo considerado, y cómo se relaciona esto con los errores de validación cruzada obtenidos?**
 
 ```{r}
-set.seed(2)
+set.seed(123)
 z <- rep(0, 1100)
-z[class.one] <- 1
+z[clase.uno] <- 1
 data <- data.frame(x = x, y = y, z = as.factor(z))
 tune.out <- tune(svm, z ~ ., data = data, kernel = "linear", ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100, 1000, 10000)))
 summary(tune.out)
 ```
+#### El mejor parametro parece ser el que se obtiene con 10000
+
 ```{r}
 data.frame(cost = tune.out$performance$cost, misclass = tune.out$performance$error * 1100)
 ```
 
+#### Podemos ver como 10000 tiene cero errores al clasificar los puntos 
 
 **(c) Genere un conjunto de datos de prueba apropiado y calcule los errores de prueba correspondientes a cada uno de los valores de costo considerados. ¿Qué valor del costo conduce a la menor cantidad de errores de prueba, y cómo se compara esto con los valores de costo que producen la menor cantidad de errores de capacitación y la menor cantidad de errores de validación cruzada?**
 
 ```{r}
 x.test <- runif(1000, 0, 100)
-class.one <- sample(1000, 500)
+clase.uno <- sample(1000, 500)
 y.test <- rep(NA, 1000)
-# Set y > x for class.one
-for (i in class.one) {
+
+for (i in clase.uno) {
     y.test[i] <- runif(1, x.test[i], 100)
 }
-# set y < x for class.zero
-for (i in setdiff(1:1000, class.one)) {
+
+for (i in setdiff(1:1000, clase.uno)) {
     y.test[i] <- runif(1, 0, x.test[i])
 }
-plot(x.test[class.one], y.test[class.one], col = "blue", pch = 5)
-points(x.test[-class.one], y.test[-class.one], col = "lightblue", pch = 5)
+plot(x.test[clase.uno], y.test[clase.uno], col = "blue", pch = 5)
+points(x.test[-clase.uno], y.test[-clase.uno], col = "lightblue", pch = 5)
 
 ```
 ```{r}
-set.seed(3)
+set.seed(123)
 z.test <- rep(0, 1000)
-z.test[class.one] <- 1
+z.test[clase.uno] <- 1
 data.test <- data.frame(x = x.test, y = y.test, z = as.factor(z.test))
-costs <- c(0.01, 0.1, 1, 5, 10, 100, 1000, 10000)
-test.err <- rep(NA, length(costs))
-for (i in 1:length(costs)) {
-    svm.fit <- svm(z ~ ., data = data, kernel = "linear", cost = costs[i])
+costos <- c(0.01, 0.1, 1, 5, 10, 100, 1000, 10000)
+test.err <- rep(NA, length(costos))
+for (i in 1:length(costos)) {
+    svm.fit <- svm(z ~ ., data = data, kernel = "linear", cost = costos[i])
     pred <- predict(svm.fit, data.test)
     test.err[i] <- sum(pred != data.test$z)
 }
-data.frame(cost = costs, misclass = test.err)
+data.frame(cost = costos, misclass = test.err)
 ```
 
+#### Los costos de  5 o 10 parecen funcionar mejor en las observaciones de prueba
 
 **(d) Discuta sus resultados.**
+
+####  Pdemos ver como un costo grande intenta clasificar correctamente los puntos, sin embargo, un pequeño costo hace algunos errores en los puntos de prueba y funciona mejor en los datos.
 
 ### Punto 7
 
@@ -1324,12 +1330,38 @@ data.frame(cost = costs, misclass = test.err)
 
 
 **(a) Cree una variable binaria que tome un 1 para los automóviles con millaje de gasolina por encima de la mediana, y un 0 para automóviles con millaje de gasolina por debajo de la mediana.**
+```{r}
+require(ISLR)
+library(ISLR)
+var <- ifelse(Auto$mpg > median(Auto$mpg), 1, 0)
+Auto$mpglevel <- as.factor(var)
+```
 
 
 
 **(b) Ajuste un clasificador de vector de soporte a los datos con varios valores de costo, para predecir si un automóvil obtiene un millaje de gasolina alto o bajo. Informe los errores de validación cruzada asociados con diferentes valores de este parámetro. Comenta tus resultados.**
 
+```{r}
+require(e1071)
+
+set.seed(1)
+tune.out <- tune(svm, mpglevel ~ ., data = Auto, kernel = "linear", ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100, 1000)))
+summary(tune.out)
+```
+
+
 **(c) Ahora repita (b), esta vez usando SVM con núcleos de base radial y polinomial, con diferentes valores de gamma y grado y costo. Comenta tus resultados.**
+```{r}
+set.seed(1)
+tune.out <- tune(svm, mpglevel ~ ., data = Auto, kernel = "polynomial", ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100), degree = c(2, 3, 4)))
+summary(tune.out)
+```
+```{r}
+set.seed(1)
+tune.out <- tune(svm, mpglevel ~ ., data = Auto, kernel = "radial", ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100), gamma = c(0.01, 0.1, 1, 5, 10, 100)))
+summary(tune.out)
+```
+
 
 **(d) Haga algunos gráficos para respaldar sus afirmaciones en (b) y (c). Sugerencia: En el laboratorio, utilizamos la función plot() para objetos svm solo en casos con p = 2. Cuando p> 2, puede usar la función plot() para crear gráficos que muestren pares de variables a la vez. Esencialmente, en lugar de escribir**
 
@@ -1341,6 +1373,8 @@ data.frame(cost = costs, misclass = test.err)
 
 **para graficar solo las variables primera y cuarta. Sin embargo, debe reemplazar x1 y x4 con los nombres correctos de las variables. Para obtener más información, escriba ?Plot.svm.**
 
+
+
 ### Punto 8
 
 
@@ -1348,17 +1382,152 @@ data.frame(cost = costs, misclass = test.err)
 
 **(a) Cree un conjunto de entrenamiento que contenga una muestra aleatoria de 800 observaciones, y un conjunto de prueba que contenga las observaciones restantes.**
 
+```{r}
+set.seed(1)
+train <- sample(nrow(OJ), 800)
+OJ.train <- OJ[train, ]
+OJ.test <- OJ[-train, ]
+```
+
+
 **(b) Ajuste un clasificador de vector de soporte a los datos de entrenamiento usando cost = 0.01, con Compra como respuesta y las otras variables como predictores. Use la función summary() para generar estadísticas resumidas y describir los resultados obtenidos.**
+```{r}
+svm.linear <- svm(Purchase ~ ., data = OJ.train, kernel = "linear", cost = 0.01)
+summary(svm.linear)
+```
+
 
 **(c) ¿Cuáles son las tasas de error de capacitación y prueba?**
 
+```{r}
+train.pred <- predict(svm.linear, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+
+(78 + 55) / (439 + 228 + 78 + 55)
+
+```{r}
+test.pred <- predict(svm.linear, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(31 + 18) / (141 + 80 + 31 + 18)
+
 **(d) Use la función tune() para seleccionar un costo óptimo. Considere values en el rango de 0.01 a 10.**
 
+```{r}
+set.seed(2)
+tune.out <- tune(svm, Purchase ~ ., data = OJ.train, kernel = "linear", ranges = list(cost = 10^seq(-2, 1, by = 0.25)))
+summary(tune.out)
+
+```
+
+
 **(e) Calcule las tasas de error de entrenamiento y prueba usando este nuevo valor por el cost**
+```{r}
+svm.linear <- svm(Purchase ~ ., kernel = "linear", data = OJ.train, cost = tune.out$best.parameter$cost)
+train.pred <- predict(svm.linear, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+(71 + 56) / (438 + 235 + 71 + 56)
+
+```{r}
+test.pred <- predict(svm.linear, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(32 + 19) / (140 + 79 + 32 + 19)
 
 **(f) Repita las partes (b) a (e) usando una máquina de vectores de soporte con un núcleo radial Use el valor predeterminado para gamma.**
 
+```{r}
+svm.radial <- svm(Purchase ~ ., kernel = "radial", data = OJ.train)
+summary(svm.radial)
+```
+
+```{r}
+train.pred <- predict(svm.radial, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+
+(77 + 39) / (455 + 229 + 77 + 39)
+
+```{r}
+test.pred <- predict(svm.radial, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(28 + 18) / (141 + 83 + 28 + 18)
+
+
+
+```{r}
+set.seed(2)
+tune.out <- tune(svm, Purchase ~ ., data = OJ.train, kernel = "radial", ranges = list(cost = 10^seq(-2, 
+    1, by = 0.25)))
+summary(tune.out)
+```
+```{r}
+svm.radial <- svm(Purchase ~ ., kernel = "radial", data = OJ.train, cost = tune.out$best.parameter$cost)
+summary(svm.radial)
+```
+```{r}
+train.pred <- predict(svm.radial, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+
+(77 + 39) / (455 + 229 + 77 + 39)
+
+```{r}
+test.pred <- predict(svm.radial, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(28 + 18) / (141 + 83 + 28 + 18)
+
 **(g) Repita las partes (b) a (e) usando una máquina de vectores de soporte con un núcleo polinomial Establecer grado = 2.**
+```{r}
+svm.poly <- svm(Purchase ~ ., kernel = "polynomial", data = OJ.train, degree = 2)
+summary(svm.poly)
+```
+```{r}
+train.pred <- predict(svm.poly, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+(105 + 33) / (461 + 201 + 105 + 33)
+
+```{r}
+test.pred <- predict(svm.poly, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(41 + 10) / (149 + 70 + 41 + 10)
+
+```{r}
+set.seed(2)
+tune.out <- tune(svm, Purchase ~ ., data = OJ.train, kernel = "polynomial", degree = 2, ranges = list(cost = 10^seq(-2, 
+    1, by = 0.25)))
+summary(tune.out)
+```
+
+```{r}
+svm.poly <- svm(Purchase ~ ., kernel = "polynomial", degree = 2, data = OJ.train, cost = tune.out$best.parameter$cost)
+summary(svm.poly)
+```
+
+```{r}
+train.pred <- predict(svm.poly, OJ.train)
+table(OJ.train$Purchase, train.pred)
+```
+
+(72 + 44) / (450 + 234 + 72 + 44)
+
+```{r}
+test.pred <- predict(svm.poly, OJ.test)
+table(OJ.test$Purchase, test.pred)
+```
+
+(31 + 19) / (140 + 80 + 31 + 19)
 
 **(h) En general, ¿qué enfoque parece dar los mejores resultados con estos datos?**
 
