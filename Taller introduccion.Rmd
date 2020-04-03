@@ -1062,7 +1062,7 @@ plot(x[class], y[class], col = "green", xlab = "X", ylab = "Y", ylim = c(-10, 25
 points(x[-class], y[-class], col = "blue")
 ```
 
-####Clasificador de soporte en los datos de entrenamiento
+#### Clasificador de soporte en los datos de entrenamiento
 
 ```{r}
 z <- rep(-1, 100)
@@ -1079,9 +1079,9 @@ plot(svm.linear, data.train)
 table(predict = predict(svm.linear, data.train), truth = data.train$z)
 ```
 
-####El clasificador de vectores de soporte comete 4 errores en los datos de entrenamiento.
+#### El clasificador de vectores de soporte comete 4 errores en los datos de entrenamiento.
 
-####Maquina de vectores de soporte con un núcleo polinomial.
+#### Maquina de vectores de soporte con un núcleo polinomial.
 
 
 
@@ -1106,9 +1106,9 @@ plot(svm.radial, data.train)
 table(predict = predict(svm.radial, data.train), truth = data.train$z)
 ```
 
-####La máquina con un núcleo radial comete  0  errores en los datos de entrenamiento.
+#### La máquina con un núcleo radial comete  0  errores en los datos de entrenamiento.
 
-####Aplicando a los datos de prueba.
+#### Aplicando a los datos de prueba.
 
 ```{r}
 plot(svm.linear, data.test)
